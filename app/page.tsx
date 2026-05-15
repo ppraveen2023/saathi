@@ -337,7 +337,7 @@ export default function Home() {
       </div>
 
       <footer className="absolute bottom-0 w-full border-t border-gray-900 px-4 pb-5 pt-4 text-center text-xs text-gray-600">
-        Built with Sarvam AI · OpenAI · Supabase · Next.js
+        Built with Sarvam AI · OpenAI · Bolna · Supabase · Next.js
       </footer>
     </main>
   );
