@@ -46,9 +46,11 @@ async function synthesizeWithSarvam(text: string) {
         text,
         target_language_code: "hi-IN",
         speaker,
-        model: "bulbul:v2",
+        model: "bulbul:v3",
         output_audio_codec: "wav",
-        enable_preprocessing: true,
+        speech_sample_rate: 24000,
+        pace: 0.9,
+        temperature: 0.7,
       }),
     });
 
@@ -74,7 +76,7 @@ async function synthesizeWithSarvam(text: string) {
     return Buffer.from(base64Audio, "base64");
   }
 
-  return requestTts("anushka");
+  return requestTts("shreya");
 }
 
 export async function POST(request: Request) {
