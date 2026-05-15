@@ -34,7 +34,7 @@ export default function Home() {
         const durationMs = Date.now() - startedAtRef.current;
         const audioBlob = new Blob(chunksRef.current, { type: recorder.mimeType || "audio/webm" });
 
-        if (durationMs < 500 || audioBlob.size === 0) {
+        if (durationMs < 1000 || audioBlob.size === 0) {
           setError("Hold the button and speak");
           setIsLoading(false);
           return;
@@ -44,7 +44,7 @@ export default function Home() {
       };
 
       recorderRef.current = recorder;
-      recorder.start();
+      recorder.start(250);
       setIsRecording(true);
     } catch {
       setError("Please allow microphone access");
@@ -102,14 +102,16 @@ export default function Home() {
       <p className="mt-4 text-sm text-gray-400">Voice agent for Indian services</p>
       <button
         onClick={handleMicClick}
+        disabled={isLoading}
         className={`mt-10 flex h-32 w-32 items-center justify-center rounded-full text-5xl text-black ${
           isRecording ? "animate-pulse bg-red-500" : "bg-white"
-        }`}
+        } ${isLoading ? "opacity-60" : ""}`}
       >
         🎤
       </button>
       {error && <p className="mt-4 text-sm text-red-500">{error}</p>}
       <div id="transcript-area" className="mt-8 min-h-20 px-6">
+        {isRecording && <p className="text-gray-400">Recording...</p>}
         {isLoading && <p className="text-gray-400">Listening...</p>}
         {transcript && !isLoading && (
           <div>
