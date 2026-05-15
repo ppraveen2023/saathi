@@ -28,6 +28,8 @@ export async function POST(request: Request) {
 
     const sarvamFormData = new FormData();
     sarvamFormData.append("file", normalizedAudio, "recording.webm");
+    sarvamFormData.append("model", "saaras:v3");
+    sarvamFormData.append("mode", "codemix");
     sarvamFormData.append("language_code", "hi-IN");
 
     const sarvamResponse = await fetch("https://api.sarvam.ai/speech-to-text", {
