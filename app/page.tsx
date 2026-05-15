@@ -30,6 +30,46 @@ export default function Home() {
   const chunksRef = useRef<BlobPart[]>([]);
   const startedAtRef = useRef(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const soundContextRef = useRef<AudioContext | null>(null);
+
+  function playTone(frequency: number, durationMs: number, type: OscillatorType = "sine") {
+    try {
+      const AudioContextClass = window.AudioContext ||
+        (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (!AudioContextClass) return;
+
+      const context = soundContextRef.current || new AudioContextClass();
+      soundContextRef.current = context;
+
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+      oscillator.type = type;
+      oscillator.frequency.value = frequency;
+      gain.gain.setValueAtTime(0.0001, context.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.08, context.currentTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + durationMs / 1000);
+      oscillator.connect(gain);
+      gain.connect(context.destination);
+      oscillator.start();
+      oscillator.stop(context.currentTime + durationMs / 1000);
+    } catch {
+      // Sound effects are optional polish; never block the demo.
+    }
+  }
+
+  function playStartSound() {
+    playTone(520, 90);
+    window.setTimeout(() => playTone(760, 120), 70);
+  }
+
+  function playStopSound() {
+    playTone(420, 100, "triangle");
+  }
+
+  function playSuccessSound() {
+    playTone(660, 90);
+    window.setTimeout(() => playTone(880, 120), 90);
+  }
 
   const statusLabel = responseText
     ? ""
@@ -93,6 +133,7 @@ export default function Home() {
 
       recorderRef.current = recorder;
       recorder.start(250);
+      playStartSound();
       setIsRecording(true);
     } catch {
       setError("Please allow microphone access");
@@ -106,6 +147,7 @@ export default function Home() {
       return;
     }
 
+    playStopSound();
     setIsRecording(false);
     setIsLoading(true);
     recorderRef.current.stop();
@@ -227,6 +269,7 @@ export default function Home() {
 
       setResponseText(data.text || "");
       setResponseAudioUrl(data.audio_url || "");
+      playSuccessSound();
 
       const audio = new Audio(data.audio_url);
       audioRef.current = audio;
@@ -272,6 +315,17 @@ export default function Home() {
       <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center">
         <h1 className="text-5xl font-light sm:text-6xl">Saathi</h1>
         <p className="mt-4 text-sm text-gray-400">Voice agent for Indian services</p>
+
+        {!transcript && !responseText && (
+          <section className="mt-8 w-full rounded-2xl border border-gray-900 bg-white/[0.03] p-5 text-left shadow-lg shadow-white/[0.02]">
+            <p className="text-sm font-medium text-white">How to use Saathi</p>
+            <ol className="mt-3 space-y-2 text-sm leading-relaxed text-gray-400">
+              <li>1. Tap the mic and speak in Hindi or Hinglish.</li>
+              <li>2. Try: “मेरा बिजली का बिल पता करना है, account number 12345”.</li>
+              <li>3. Saathi will understand, call the service, and speak the answer back in Hindi.</li>
+            </ol>
+          </section>
+        )}
 
         {responseText && (
           <div className="mx-auto mb-8 mt-4 w-full max-w-2xl rounded-2xl border border-green-500/20 bg-green-500/5 p-6 shadow-lg shadow-green-500/10">
