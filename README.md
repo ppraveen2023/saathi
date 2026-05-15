@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Saathi
 
-## Getting Started
+A voice agent that helps non-English-speaking Indians access government and utility services. Speak in Hindi — Saathi understands, navigates the service on your behalf, and replies in spoken Hindi.
 
-First, run the development server:
+## Live demo
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+https://saathi-gold.vercel.app
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## What it does
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. User taps mic, speaks a request in Hindi or Hinglish ("मेरा बिजली का बिल पता करना है, account number 12345")
+2. Sarvam STT transcribes the Indic speech
+3. OpenAI GPT-4o parses intent (service, account number, action) and generates a call plan
+4. The call layer queries the service and captures the result
+5. GPT-4o summarizes the result in friendly Hindi
+6. Sarvam TTS speaks the answer back to the user
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## What's real vs scaffolded
 
-## Learn More
+See MOCKED.md for full detail. Short version:
+- Indic STT (Sarvam) — real
+- Intent parsing (GPT-4o) — real
+- Hindi response generation (GPT-4o) — real
+- Hindi TTS (Sarvam) — real
+- Persistence (Supabase) — real
+- Outbound call execution — scaffolded with a realistic transcript. Bolna integration is a single-file change behind /api/call.
 
-To learn more about Next.js, take a look at the following resources:
+## Stack
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Next.js 14 (App Router), TypeScript, Tailwind
+- Sarvam AI for Indic STT and TTS
+- OpenAI GPT-4o for reasoning and Hindi summarization
+- Supabase for DB and audio storage
+- Vercel for hosting
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Run locally
 
-## Deploy on Vercel
+1. Clone the repo
+2. npm install
+3. Copy .env.example to .env.local and fill in API keys (Sarvam, OpenAI, Supabase)
+4. Set up the Supabase schema (see /supabase/schema.sql or the calls table definition in lib/supabase-admin.ts)
+5. npm run dev
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Built for
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Activate VC AI Fellows · Summer 2026 application.
+Built in 24 hours, May 14-15, 2026.

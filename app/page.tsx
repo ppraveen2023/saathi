@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 type Intent = {
@@ -29,6 +30,20 @@ export default function Home() {
   const chunksRef = useRef<BlobPart[]>([]);
   const startedAtRef = useRef(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const statusLabel = responseText
+    ? ""
+    : isRecording
+      ? "Listening..."
+      : isLoading
+        ? "Understanding your words..."
+        : isPlanning
+          ? "Figuring out what you need..."
+          : isCalling
+            ? "Calling on your behalf..."
+            : isResponding
+              ? "Almost done..."
+              : "";
 
   useEffect(() => {
     if (callTranscript && currentCallId && intent && !responseText && !isResponding) {
@@ -249,73 +264,81 @@ export default function Home() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-black text-center">
-      <h1 className="text-6xl font-light text-white">Saathi</h1>
-      <p className="mt-4 text-sm text-gray-400">Voice agent for Indian services</p>
-      {responseText && (
-        <div className="mx-auto mb-8 mt-4 max-w-2xl rounded-2xl border border-green-500/20 bg-green-500/5 p-6 shadow-lg shadow-green-500/10">
-          <p className="text-2xl font-light leading-relaxed text-white">{responseText}</p>
-          <div className="mt-4 flex justify-center">
-            <button
-              onClick={playResponseAudio}
-              className="rounded-full border border-gray-700 px-3 py-1 text-sm text-gray-400 hover:text-white"
-            >
-              {autoplayBlocked ? "▶ Tap to play" : "▶ Play again"}
-            </button>
-          </div>
-        </div>
-      )}
-      <button
-        onClick={handleMicClick}
-        disabled={isLoading || isPlanning || isCalling || isResponding}
-        className={`mt-10 flex h-32 w-32 items-center justify-center rounded-full text-5xl text-black ${
-          isRecording ? "animate-pulse bg-red-500" : "bg-white"
-        } ${isLoading || isPlanning || isCalling || isResponding ? "opacity-60" : ""}`}
-      >
-        🎤
-      </button>
-      {error && <p className="mt-4 text-sm text-red-500">{error}</p>}
-      <div id="transcript-area" className="mt-8 min-h-20 px-6">
-        {isRecording && <p className="text-gray-400">Recording...</p>}
-        {isLoading && <p className="text-gray-400">Sending audio to Sarvam and waiting for transcript...</p>}
-        {transcript && !isLoading && (
-          <div>
-            <p className="text-sm text-gray-400">You said:</p>
-            <p className="mt-2 text-xl text-white">{transcript}</p>
-            {isPlanning && <p className="mt-4 text-sm italic text-gray-400">Understanding...</p>}
-            {intent && !isPlanning && (
-              <div className="mt-4 rounded-lg border border-gray-800 p-4 text-left text-white">
-                <p>Service: {intent.service_type}</p>
-                <p className="mt-2">Account: {intent.account_number || "Not found"}</p>
-                <p className="mt-2">Action: {intent.action}</p>
-              </div>
-            )}
-            {showUnsupported && (
-              <div className="mt-4 rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-4 text-yellow-200">
-                This service isn&apos;t supported in this demo yet — we built the electricity flow as proof of concept.
-              </div>
-            )}
-            {isCalling && (
-              <p className="mt-4 text-sm italic text-gray-400">
-                Calling on your behalf
-                <span className="ml-1 inline-block animate-bounce">.</span>
-                <span className="inline-block animate-bounce [animation-delay:150ms]">.</span>
-                <span className="inline-block animate-bounce [animation-delay:300ms]">.</span>
-              </p>
-            )}
-            {callTranscript && !isCalling && (
-              <div className="relative mt-4 rounded-lg border border-gray-800 p-4 text-left">
-                <span className="absolute right-4 top-4 rounded-full border border-gray-700 px-2 py-0.5 text-xs text-gray-500">
-                  Simulated
-                </span>
-                <p className="text-xs uppercase tracking-wide text-gray-400">Call transcript</p>
-                <p className="mt-4 pr-24 font-mono text-sm text-white/80">{callTranscript}</p>
-              </div>
-            )}
-            {isResponding && <p className="mt-4 text-sm italic text-gray-400">Almost done...</p>}
+    <main className="relative flex min-h-screen flex-col items-center bg-black px-4 py-10 pb-28 text-center text-white sm:px-6">
+      <Link href="/history" className="absolute right-4 top-4 text-sm text-gray-500 hover:text-white sm:right-6 sm:top-6">
+        History →
+      </Link>
+
+      <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center">
+        <h1 className="text-5xl font-light sm:text-6xl">Saathi</h1>
+        <p className="mt-4 text-sm text-gray-400">Voice agent for Indian services</p>
+
+        {responseText && (
+          <div className="mx-auto mb-8 mt-4 w-full max-w-2xl rounded-2xl border border-green-500/20 bg-green-500/5 p-6 shadow-lg shadow-green-500/10">
+            <p className="break-words text-xl font-light leading-relaxed text-white sm:text-2xl">{responseText}</p>
+            <div className="mt-4 flex justify-center">
+              <button
+                onClick={playResponseAudio}
+                className="rounded-full border border-gray-700 px-3 py-1 text-sm text-gray-400 hover:text-white"
+              >
+                {autoplayBlocked ? "▶ Tap to play" : "▶ Play again"}
+              </button>
+            </div>
           </div>
         )}
+
+        <button
+          onClick={handleMicClick}
+          disabled={isLoading || isPlanning || isCalling || isResponding}
+          className={`mt-10 flex h-32 min-h-32 w-32 min-w-32 items-center justify-center rounded-full text-5xl text-black ${
+            isRecording ? "animate-pulse bg-red-500" : "bg-white"
+          } ${isLoading || isPlanning || isCalling || isResponding ? "opacity-60" : ""}`}
+        >
+          🎤
+        </button>
+
+        <div className="mt-4 min-h-5">
+          {statusLabel && (
+            <p className="text-sm italic text-gray-500 opacity-100 transition-opacity duration-300">{statusLabel}</p>
+          )}
+        </div>
+
+        {error && <p className="mt-4 text-sm text-red-500">{error}</p>}
+
+        <div id="transcript-area" className="mt-6 min-h-20 w-full px-0 sm:px-6">
+          {transcript && !isLoading && (
+            <div>
+              <p className="text-sm text-gray-400">You said:</p>
+              <p className="mt-2 break-words text-base text-white sm:text-xl">{transcript}</p>
+              {intent && !isPlanning && (
+                <div className="mt-4 rounded-lg border border-gray-800 p-4 text-left text-base text-white sm:text-lg">
+                  <p>Service: {intent.service_type}</p>
+                  <p className="mt-2">Account: {intent.account_number || "Not found"}</p>
+                  <p className="mt-2">Action: {intent.action}</p>
+                </div>
+              )}
+              {showUnsupported && (
+                <div className="mt-4 rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-4 text-yellow-200">
+                  This service isn&apos;t supported in this demo yet — we built the electricity flow as proof of concept.
+                </div>
+              )}
+              {callTranscript && !isCalling && (
+                <div className="relative mt-4 rounded-lg border border-gray-800 p-4 text-left">
+                  <span className="absolute right-4 top-4 rounded-full border border-gray-700 px-2 py-0.5 text-xs text-gray-500">
+                    Simulated
+                  </span>
+                  <p className="text-xs uppercase tracking-wide text-gray-400">Call transcript</p>
+                  <p className="mt-4 break-words pr-24 font-mono text-sm text-white/80">{callTranscript}</p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
+
+      <footer className="absolute bottom-0 w-full border-t border-gray-900 px-4 pb-5 pt-4 text-center text-xs text-gray-600">
+        Built with Sarvam AI · OpenAI · Supabase · Next.js
+      </footer>
     </main>
   );
 }
