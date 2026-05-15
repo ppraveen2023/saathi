@@ -112,7 +112,7 @@ export default function Home() {
       {error && <p className="mt-4 text-sm text-red-500">{error}</p>}
       <div id="transcript-area" className="mt-8 min-h-20 px-6">
         {isRecording && <p className="text-gray-400">Recording...</p>}
-        {isLoading && <p className="text-gray-400">Listening...</p>}
+        {isLoading && <p className="text-gray-400">Sending audio to Sarvam and waiting for transcript...</p>}
         {transcript && !isLoading && (
           <div>
             <p className="text-sm text-gray-400">You said:</p>
