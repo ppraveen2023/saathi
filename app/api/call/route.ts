@@ -12,13 +12,13 @@ export async function POST(request: Request) {
     try {
       body = await request.json();
     } catch {
-      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 500 });
     }
 
     const callId = typeof body.call_id === "string" ? body.call_id.trim() : "";
 
     if (!callId || !Array.isArray(body.call_plan)) {
-      return NextResponse.json({ error: "call_id and call_plan are required" }, { status: 400 });
+      return NextResponse.json({ error: "call_id and call_plan are required" }, { status: 500 });
     }
 
     await new Promise((r) => setTimeout(r, 4000));
