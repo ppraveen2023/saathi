@@ -38,10 +38,13 @@ export default async function HistoryPage() {
         </Link>
         <h1 className="mt-8 text-5xl font-light">Saathi</h1>
         <p className="mt-3 text-sm text-gray-400">Recent calls</p>
+        <p className="mt-2 text-sm text-gray-500">The last 10 conversations with Saathi. Public data — this is a demo.</p>
 
         {error && <p className="mt-8 text-sm text-red-500">Couldn&apos;t load history.</p>}
 
-        {!error && calls.length === 0 && <p className="mt-8 text-sm text-gray-500">No calls yet.</p>}
+        {!error && calls.length === 0 && (
+          <p className="py-12 text-center text-sm text-gray-500">No conversations yet. Try the demo on the home page.</p>
+        )}
 
         <div className="mt-8 space-y-3">
           {calls.map((call) => (

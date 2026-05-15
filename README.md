@@ -1,10 +1,16 @@
 # Saathi
 
-A voice agent that helps non-English-speaking Indians access government and utility services. Speak in Hindi — Saathi understands, navigates the service on your behalf, and replies in spoken Hindi.
+A Hindi voice agent that helps non-English-speaking Indians access government services.
 
 ## Live demo
 
 https://saathi-gold.vercel.app
+
+## Try it
+
+Tap the mic, speak in Hindi:
+"मेरा बिजली का बिल पता करना है, account number twelve three four five"
+(Translation: "Check my electricity bill, account number 12345")
 
 ## What it does
 

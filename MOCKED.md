@@ -1,3 +1,5 @@
+> Reviewers: this file exists so you can see exactly what's real and what's scaffolded. No hidden mocks elsewhere.
+
 # What's Mocked in Saathi
 
 ## /api/call (outbound voice call layer)

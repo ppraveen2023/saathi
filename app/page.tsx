@@ -26,6 +26,7 @@ export default function Home() {
   const [showUnsupported, setShowUnsupported] = useState(false);
   const [error, setError] = useState("");
   const [currentCallId, setCurrentCallId] = useState("");
+  const [hasRecorded, setHasRecorded] = useState(false);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<BlobPart[]>([]);
   const startedAtRef = useRef(0);
@@ -133,6 +134,7 @@ export default function Home() {
 
       recorderRef.current = recorder;
       recorder.start(250);
+      setHasRecorded(true);
       playStartSound();
       setIsRecording(true);
     } catch {
@@ -314,18 +316,10 @@ export default function Home() {
 
       <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center">
         <h1 className="text-5xl font-light sm:text-6xl">Saathi</h1>
-        <p className="mt-4 text-sm text-gray-400">Voice agent for Indian services</p>
-
-        {!transcript && !responseText && (
-          <section className="mt-8 w-full rounded-2xl border border-gray-900 bg-white/[0.03] p-5 text-left shadow-lg shadow-white/[0.02]">
-            <p className="text-sm font-medium text-white">How to use Saathi</p>
-            <ol className="mt-3 space-y-2 text-sm leading-relaxed text-gray-400">
-              <li>1. Tap the mic and speak in Hindi or Hinglish.</li>
-              <li>2. Try: “मेरा बिजली का बिल पता करना है, account number 12345”.</li>
-              <li>3. Saathi will understand, call the service, and speak the answer back in Hindi.</li>
-            </ol>
-          </section>
-        )}
+        <div className="mt-4">
+          <p className="text-base text-gray-300">आप हिंदी में बोलिए — हम सुनेंगे और जवाब देंगे</p>
+          <p className="mt-1 text-sm text-gray-500">Tap the mic. Speak in Hindi. Get a Hindi answer back.</p>
+        </div>
 
         {responseText && (
           <div className="mx-auto mb-8 mt-4 w-full max-w-2xl rounded-2xl border border-green-500/20 bg-green-500/5 p-6 shadow-lg shadow-green-500/10">
@@ -356,6 +350,13 @@ export default function Home() {
             <p className="text-sm italic text-gray-500 opacity-100 transition-opacity duration-300">{statusLabel}</p>
           )}
         </div>
+
+        {!hasRecorded && !responseText && (
+          <div className="mx-auto mt-8 max-w-md rounded-lg border border-gray-800 p-4 text-sm">
+            <p className="text-gray-400">Try saying:</p>
+            <p className="mt-2 font-mono text-white">मेरा बिजली का बिल पता करना है, account number twelve three four five</p>
+          </div>
+        )}
 
         {error && <p className="mt-4 text-sm text-red-500">{error}</p>}
 
@@ -391,7 +392,7 @@ export default function Home() {
       </div>
 
       <footer className="absolute bottom-0 w-full border-t border-gray-900 px-4 pb-5 pt-4 text-center text-xs text-gray-600">
-        Built with Sarvam AI · OpenAI · Bolna · Supabase · Next.js
+        Built with Sarvam AI · OpenAI · Supabase · Next.js
       </footer>
     </main>
   );
