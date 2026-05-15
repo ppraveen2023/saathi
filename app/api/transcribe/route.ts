@@ -65,18 +65,22 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Couldn't understand, please try again" }, { status: 422 });
     }
 
-    const { error: insertError } = await supabaseAdmin.from("calls").insert({
-      user_input_text: transcript,
-      language,
-      status: "transcribed",
-    });
+    const { data: insertedCall, error: insertError } = await supabaseAdmin
+      .from("calls")
+      .insert({
+        user_input_text: transcript,
+        language,
+        status: "transcribed",
+      })
+      .select("id")
+      .single();
 
-    if (insertError) {
+    if (insertError || !insertedCall) {
       console.error("Supabase call insert failed", insertError);
       return NextResponse.json({ error: "Could not save transcript" }, { status: 500 });
     }
 
-    return NextResponse.json({ transcript, language });
+    return NextResponse.json({ transcript, language, call_id: insertedCall.id });
   } catch (error) {
     console.error("Transcription route failed", error);
     return NextResponse.json({ error: "Couldn't understand, please try again" }, { status: 500 });

@@ -2,10 +2,18 @@
 
 import { useRef, useState } from "react";
 
+type Intent = {
+  service_type: string;
+  account_number: string | null;
+  action: string;
+};
+
 export default function Home() {
   const [isRecording, setIsRecording] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isPlanning, setIsPlanning] = useState(false);
   const [transcript, setTranscript] = useState("");
+  const [intent, setIntent] = useState<Intent | null>(null);
   const [error, setError] = useState("");
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<BlobPart[]>([]);
@@ -14,6 +22,7 @@ export default function Home() {
   async function startRecording() {
     setError("");
     setTranscript("");
+    setIntent(null);
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -79,8 +88,15 @@ export default function Home() {
         throw new Error(data.error || "Transcription failed");
       }
 
-      setTranscript(data.transcript || "");
+      const nextTranscript = data.transcript || "";
+      const nextCallId = data.call_id || "";
+
+      setTranscript(nextTranscript);
       setError("");
+
+      if (nextTranscript && nextCallId) {
+        await planIntent(nextTranscript, nextCallId);
+      }
     } catch {
       setError("Couldn't understand, please try again");
     } finally {
@@ -88,10 +104,36 @@ export default function Home() {
     }
   }
 
+  async function planIntent(nextTranscript: string, nextCallId: string) {
+    setIsPlanning(true);
+
+    try {
+      const response = await fetch("/api/plan", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ transcript: nextTranscript, call_id: nextCallId }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Intent parsing failed");
+      }
+
+      setIntent(data.intent);
+    } catch {
+      setError("Couldn't parse that, try again");
+    } finally {
+      setIsPlanning(false);
+    }
+  }
+
   function handleMicClick() {
     if (isRecording) {
       stopRecording();
-    } else if (!isLoading) {
+    } else if (!isLoading && !isPlanning) {
       void startRecording();
     }
   }
@@ -102,10 +144,10 @@ export default function Home() {
       <p className="mt-4 text-sm text-gray-400">Voice agent for Indian services</p>
       <button
         onClick={handleMicClick}
-        disabled={isLoading}
+        disabled={isLoading || isPlanning}
         className={`mt-10 flex h-32 w-32 items-center justify-center rounded-full text-5xl text-black ${
           isRecording ? "animate-pulse bg-red-500" : "bg-white"
-        } ${isLoading ? "opacity-60" : ""}`}
+        } ${isLoading || isPlanning ? "opacity-60" : ""}`}
       >
         🎤
       </button>
@@ -117,6 +159,14 @@ export default function Home() {
           <div>
             <p className="text-sm text-gray-400">You said:</p>
             <p className="mt-2 text-xl text-white">{transcript}</p>
+            {isPlanning && <p className="mt-4 text-sm italic text-gray-400">Understanding...</p>}
+            {intent && !isPlanning && (
+              <div className="mt-4 rounded-lg border border-gray-800 p-4 text-left text-white">
+                <p>Service: {intent.service_type}</p>
+                <p className="mt-2">Account: {intent.account_number || "Not found"}</p>
+                <p className="mt-2">Action: {intent.action}</p>
+              </div>
+            )}
           </div>
         )}
       </div>
