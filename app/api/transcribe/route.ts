@@ -23,8 +23,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Audio file is empty" }, { status: 400 });
     }
 
+    const audioBuffer = await audio.arrayBuffer();
+    const normalizedAudio = new Blob([audioBuffer], { type: "audio/webm" });
+
     const sarvamFormData = new FormData();
-    sarvamFormData.append("file", audio, audio.name || "recording.webm");
+    sarvamFormData.append("file", normalizedAudio, "recording.webm");
     sarvamFormData.append("language_code", "hi-IN");
 
     const sarvamResponse = await fetch("https://api.sarvam.ai/speech-to-text", {
