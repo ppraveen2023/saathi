@@ -74,12 +74,7 @@ async function synthesizeWithSarvam(text: string) {
     return Buffer.from(base64Audio, "base64");
   }
 
-  try {
-    return await requestTts("meera");
-  } catch (error) {
-    console.error("Sarvam speaker meera failed; falling back to anushka", error);
-    return requestTts("anushka");
-  }
+  return requestTts("anushka");
 }
 
 export async function POST(request: Request) {
