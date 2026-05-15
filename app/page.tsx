@@ -6,14 +6,18 @@ type Intent = {
   service_type: string;
   account_number: string | null;
   action: string;
+  call_plan?: string[];
 };
 
 export default function Home() {
   const [isRecording, setIsRecording] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isPlanning, setIsPlanning] = useState(false);
+  const [isCalling, setIsCalling] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [intent, setIntent] = useState<Intent | null>(null);
+  const [callTranscript, setCallTranscript] = useState("");
+  const [showUnsupported, setShowUnsupported] = useState(false);
   const [error, setError] = useState("");
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<BlobPart[]>([]);
@@ -23,6 +27,8 @@ export default function Home() {
     setError("");
     setTranscript("");
     setIntent(null);
+    setCallTranscript("");
+    setShowUnsupported(false);
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -122,7 +128,14 @@ export default function Home() {
         throw new Error(data.error || "Intent parsing failed");
       }
 
-      setIntent(data.intent);
+      const nextIntent = data.intent as Intent;
+      setIntent(nextIntent);
+
+      if (nextIntent.service_type === "electricity") {
+        await simulateCall(nextCallId, data.call_plan || nextIntent.call_plan || []);
+      } else {
+        setShowUnsupported(true);
+      }
     } catch {
       setError("Couldn't parse that, try again");
     } finally {
@@ -130,10 +143,36 @@ export default function Home() {
     }
   }
 
+  async function simulateCall(nextCallId: string, callPlan: string[]) {
+    setIsCalling(true);
+
+    try {
+      const response = await fetch("/api/call", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ call_id: nextCallId, call_plan: callPlan }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Call simulation failed");
+      }
+
+      setCallTranscript(data.transcript || "");
+    } catch {
+      setError("Couldn't complete the simulated call, try again");
+    } finally {
+      setIsCalling(false);
+    }
+  }
+
   function handleMicClick() {
     if (isRecording) {
       stopRecording();
-    } else if (!isLoading && !isPlanning) {
+    } else if (!isLoading && !isPlanning && !isCalling) {
       void startRecording();
     }
   }
@@ -144,10 +183,10 @@ export default function Home() {
       <p className="mt-4 text-sm text-gray-400">Voice agent for Indian services</p>
       <button
         onClick={handleMicClick}
-        disabled={isLoading || isPlanning}
+        disabled={isLoading || isPlanning || isCalling}
         className={`mt-10 flex h-32 w-32 items-center justify-center rounded-full text-5xl text-black ${
           isRecording ? "animate-pulse bg-red-500" : "bg-white"
-        } ${isLoading || isPlanning ? "opacity-60" : ""}`}
+        } ${isLoading || isPlanning || isCalling ? "opacity-60" : ""}`}
       >
         🎤
       </button>
@@ -165,6 +204,28 @@ export default function Home() {
                 <p>Service: {intent.service_type}</p>
                 <p className="mt-2">Account: {intent.account_number || "Not found"}</p>
                 <p className="mt-2">Action: {intent.action}</p>
+              </div>
+            )}
+            {showUnsupported && (
+              <div className="mt-4 rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-4 text-yellow-200">
+                This service isn&apos;t supported in this demo yet — we built the electricity flow as proof of concept.
+              </div>
+            )}
+            {isCalling && (
+              <p className="mt-4 text-sm italic text-gray-400">
+                Calling on your behalf
+                <span className="ml-1 inline-block animate-bounce">.</span>
+                <span className="inline-block animate-bounce [animation-delay:150ms]">.</span>
+                <span className="inline-block animate-bounce [animation-delay:300ms]">.</span>
+              </p>
+            )}
+            {callTranscript && !isCalling && (
+              <div className="relative mt-4 rounded-lg border border-gray-800 p-4 text-left">
+                <span className="absolute right-4 top-4 rounded-full border border-gray-700 px-2 py-0.5 text-xs text-gray-500">
+                  Simulated
+                </span>
+                <p className="text-xs uppercase tracking-wide text-gray-400">Call transcript</p>
+                <p className="mt-4 pr-24 font-mono text-sm text-white/80">{callTranscript}</p>
               </div>
             )}
           </div>
